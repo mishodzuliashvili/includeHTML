@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    var obj = {
+      foo: 42,
+      bar: 21,
+    };
+  </script>
+  <script src="scripts/includeHTML.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f1f1f1;
+    }
+
+    /* Create two unequal columns that floats next to each other */
+    /* Left column */
+    .leftcolumn {
+      float: left;
+      width: 75%;
+    }
+
+    /* Right column */
+    .rightcolumn {
+      float: left;
+      width: 25%;
+      padding-left: 20px;
+    }
+
+    /* Fake image */
+    .fakeimg {
+      background-color: #aaa;
+      width: 100%;
+      padding: 20px;
+    }
+
+    /* Add a card effect for articles */
+    .card {
+      background-color: white;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    /* Responsive layout - when the screen is less than 800px wide, make the two columns stack on top of each other instead of next to each other */
+    @media screen and (max-width: 800px) {
+
+      .leftcolumn,
+      .rightcolumn {
+        width: 100%;
+        padding: 0;
+      }
+    }
+  </style>
+
+<body>
+  <div id="root"></div>
+  <script>
+    class RootOutput {
+      constructor(txt) {
+        this.resTxt = txt;
+      }
+      add(txt) {
+        this.resTxt += txt;
+      }
+
+      get() {
+        return this.resTxt;
+      }
+    }
+
+    var resultRoot = new RootOutput("");
+
+    const firebaseConfig = {
+      // ...
+    };
+
+
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.firestore();
+    resultRoot.add(`<includeHtml src="components/spinner.html"></includeHtml>`)
+    //header
+    resultRoot.add(`<includeHtml src="components/header.html"></includeHtml>`)
+
+    resultRoot.add(`<div class="row">
+    <div class="leftcolumn">`)
+
+    db.collection("articles").get().then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        resultRoot.add(`<includeHtml src="components/article.html" postedat='"${doc.data().postedAt.toDate().toDateString()}"' content='${jso(doc.data())}'></includeHtml>`);
+      });
+    }).then(() => {
+      resultRoot.add(` </div> </div>`)
+      //footer
+      resultRoot.add(`<includeHtml src="components/footer.html"></includeHtml>`)
+
+      $("#root").html(resultRoot.get());
+    }).then(() => {
+      includeHTML();
+    }).then(() => {
+      setTimeout(() => {
+        $(".loadingPageBody").addClass("hidden")
+      }, 1000);
+    })
+
+
+
+  </script>
+</body>
+
+</html>
